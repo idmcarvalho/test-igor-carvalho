@@ -31,7 +31,7 @@ jobs:
       - name: EC2 Application Deploy
         run: |
           chmod 600 ${{ secrets.SSH_KEY_PATH }}
-          ssh -i ${{ secrets.SSH_KEY_PATH }} ubuntu@3.147.44.185 << 'ENDSSH'
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_KEY_PATH }} ubuntu@3.147.44.185 << 'ENDSSH'
             docker stop simple-chat-container
             docker pull idmc92/exam:latest
             docker run -d -p 80:3000 --name simple-chat-container idmc92/exam:latest
