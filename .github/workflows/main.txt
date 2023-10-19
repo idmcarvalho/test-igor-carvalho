@@ -1,0 +1,50 @@
+name: CI/CD Pipeline
+
+
+on:
+  
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  
+  workflow_dispatch:
+
+
+jobs:
+  
+  build-and-deploy:
+    
+    runs-on: ubuntu-latest
+
+    
+    steps:
+      
+      - uses: actions/checkout@v2
+
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker Build
+        run: |
+          docker build -t simple-chat-container:latest .
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        env:
+         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker Tag
+        run: docker tag simple-chat-container:latest idmc92/exam:latest
+    
+        
+      
+      - name: Docker Push
+        run: |
+          docker push idmc92/exam:latest
+          ssh -i ${{ secrets.SSH_KEY_PATH }} ubuntu@3.147.44.185 "docker stop simple-chat-container" 
+          ssh -i ${{ secrets.SSH_KEY_PATH }} ubuntu@3.147.44.185 "docker pull idmc92/exam:latest"
+          ssh -i ${{ secrets.SSH_KEY_PATH }} ubuntu@3.147.44.185 "docker run -d -p 80:3000 --name simple-chat-container idmc92/exam:latest"
+        env:
+          SSH_KEY_PATH: ${{ secrets.SSH_KEY_PATH }}
