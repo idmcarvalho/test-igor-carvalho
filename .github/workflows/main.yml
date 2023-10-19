@@ -32,12 +32,19 @@ jobs:
         run: |
           chmod 600 ${{ secrets.SSH_KEY_PATH }}
           ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_KEY_PATH }} ubuntu@3.147.44.185 << 'ENDSSH'
-            docker stop simple-chat-container
+            # Stop and remove the existing container if it exists
+            if docker ps -a | grep -q 'simple-chat-container'; then
+              docker stop simple-chat-container
+              docker rm simple-chat-container
+            fi
+
+            # Pull and run the new container
             docker pull idmc92/exam:latest
             docker run -d -p 80:3000 --name simple-chat-container idmc92/exam:latest
             exit
           ENDSSH
         env:
           SSH_KEY_PATH: ${{ secrets.SSH_KEY_PATH }}
+
 
    
